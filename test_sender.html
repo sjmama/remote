@@ -59,16 +59,16 @@
                 };
 
                 peerConnection = new RTCPeerConnection(configuration);
-                
+
                 dataChannel = peerConnection.createDataChannel('dataChannel');
 
                 dataChannel.onopen = () => {
                     console.log('Data channel is open');
-                    dataChannel.send(JSON.stringify(data)); // 데이터 전송
                 };
 
                 dataChannel.onmessage = (event) => {
                     console.log('Received data:', JSON.parse(event.data));
+                    dataChannel.send(JSON.stringify(data)); // 데이터 전송
                 };
 
                 localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
