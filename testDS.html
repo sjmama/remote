@@ -59,6 +59,10 @@
                     if (candidate) {
                         ws.send(JSON.stringify({ type: 'candidate', candidate }));
                     }
+                }; 
+                
+                peerConnection.ontrack = (event) => {
+                    
                 };
 
 
@@ -68,7 +72,7 @@
 
                     dataChannel.onmessage = (event) => {
                         const receivedData = JSON.parse(event.data);
-                        //console.log('Received data:', receivedData);
+                        console.log('Received data:', receivedData);
                     };
 
                     dataChannel.onopen = () => {

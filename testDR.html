@@ -74,8 +74,8 @@
                 };
 
                 dataChannel.onmessage = (event) => {
+                    console.log('Received data:', JSON.parse(event.data));
                 };
-
                 peerConnection.onicecandidate = ({ candidate }) => {
                     if (candidate) {
                         ws.send(JSON.stringify({ type: 'candidate', candidate }));
@@ -95,7 +95,10 @@
             }
         }
 
-        start();
+        ws.onopen = () => {
+            console.log('WebSocket connection opened.');
+            start(); // WebSocket 연결이 열린 후 start 함수 호출
+        };
     </script>
 </body>
 </html>
