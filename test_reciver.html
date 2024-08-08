@@ -14,6 +14,7 @@
 
         let localStream;
         let peerConnection;
+        let dataChannel;
 
         const ws = new WebSocket('ws://14.39.59.81:8080');
 
@@ -41,18 +42,24 @@
 
                 const configuration = {
                     iceServers: [
-                        {
-                            urls: 'stun:stun.l.google.com:19302'
-                        },
-                        {
-                            urls: 'turn:14.39.59.81',
-                            username: 'sjmama',
-                            credential: '3141'
-                        }
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'turn:14.39.59.81', username: 'sjmama', credential: '3141' }
                     ]
                 };
 
                 peerConnection = new RTCPeerConnection(configuration);
+
+                // 데이터 채널 설정
+                dataChannel = peerConnection.createDataChannel('jsonDataChannel');
+                dataChannel.onopen = () => {
+                    console.log('Data channel is open');
+                };
+                dataChannel.onmessage = (event) => {
+                    const jsonData = JSON.parse(event.data);
+                    if (jsonData && jsonData.title) {
+                        document.title = jsonData.title;  // JSON 데이터의 title 속성으로 HTML title 태그 업데이트
+                    }
+                };
 
                 localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
 
@@ -70,7 +77,7 @@
                 await peerConnection.setLocalDescription(offer);
                 ws.send(JSON.stringify(offer));
             } catch (error) {
-                console.error('Error accessing display media.', error);
+                console.error('Error accessing display media or WebRTC setup.', error);
             }
         }
 

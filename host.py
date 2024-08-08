@@ -79,9 +79,10 @@ def main():
     # 키보드 이벤트 리스너 등록
     keyboard.hook(on_key_event)
     # 상태 출력 스레드 시작
-    thread = threading.Thread(target=print_stat)
-    thread.daemon = True
-    thread.start()
+    # thread = threading.Thread(target=print_stat)
+    # thread.daemon = True
+    # thread.start()
+
 main()
 # 메인 스레드는 대기
 keyboard.wait('esc')  # 'esc' 키를 누르면 프로그램 종료
