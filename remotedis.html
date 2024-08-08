@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebRTC Screen Capture Example</title>
+</head>
+<body>
+    <h1>WebRTC Screen Capture Example</h1>
+    <video id="localVideo" autoplay playsinline></video>
+    <video id="remoteVideo" autoplay playsinline></video>
+
+    <script>
+        const localVideo = document.getElementById('localVideo');
+        const remoteVideo = document.getElementById('remoteVideo');
+
+        let localStream;
+        let peerConnection;
+
+        const ws = new WebSocket('ws://14.39.59.81:8080');
+
+        ws.onmessage = async (event) => {
+            const message = JSON.parse(event.data);
+
+            if (message.type === 'offer') {
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(message));
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+                ws.send(JSON.stringify(peerConnection.localDescription));
+            } else if (message.type === 'answer') {
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(message));
+            } else if (message.type === 'candidate') {
+                const candidate = new RTCIceCandidate(message.candidate);
+                await peerConnection.addIceCandidate(candidate);
+            }
+        };
+
+        async function start() {
+            try {
+                // 화면 캡처
+                localStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+                localVideo.srcObject = localStream;
+
+                const configuration = {
+                    iceServers: [
+                        {
+                            urls: 'stun:stun.l.google.com:19302'
+                        },
+                        {
+                            urls: 'turn:14.39.59.81',
+                            username: 'sjmama',
+                            credential: '3141'
+                        }
+                    ]
+                };
+
+                peerConnection = new RTCPeerConnection(configuration);
+
+                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+                peerConnection.onicecandidate = ({ candidate }) => {
+                    if (candidate) {
+                        ws.send(JSON.stringify({ type: 'candidate', candidate }));
+                    }
+                };
+
+                peerConnection.ontrack = (event) => {
+                    remoteVideo.srcObject = event.streams[0];
+                };
+
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+                ws.send(JSON.stringify(offer));
+            } catch (error) {
+                console.error('Error accessing display media.', error);
+            }
+        }
+
+        start();
+    </script>
+</body>
+</html>

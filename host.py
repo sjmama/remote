@@ -18,7 +18,8 @@ def on_move(event):
     stat["mpos"] = (event.x, event.y)
 
 def on_click(event):
-    if event.event_type == 'down':
+    print(event)
+    if event.event_type == 'down' or event.event_type == 'double':
         stat["mbutton"].add(event.button)
         stat['click']=True
     else:
@@ -58,25 +59,29 @@ def on_key_event(event):
     elif event.event_type == "up":
         stat["keys"].discard(event.scan_code)
 
-scroll_checker_thread = threading.Thread(target=scroll_checker)
-scroll_checker_thread.daemon = True  # 메인 스레드가 종료되면 종료
-scroll_checker_thread.start()
-# 마우스 이벤트 리스너 등록
-mouse.hook(on_mouse_event)
-# 키보드 이벤트 리스너 등록
-keyboard.hook(on_key_event)
 
 # 상태 출력 함수
 def print_stat():
     while True:
         print(stat)
         stat["scroll"] = 0  # 스크롤 상태 초기화
-        time.sleep(0.1)
+        time.sleep(0.1)    
 
-# 상태 출력 스레드 시작
-thread = threading.Thread(target=print_stat)
-thread.daemon = True
-thread.start()
+def tat():
+    return stat
 
+def main():
+    scroll_checker_thread = threading.Thread(target=scroll_checker)
+    scroll_checker_thread.daemon = True  # 메인 스레드가 종료되면 종료
+    scroll_checker_thread.start()
+    # 마우스 이벤트 리스너 등록
+    mouse.hook(on_mouse_event)
+    # 키보드 이벤트 리스너 등록
+    keyboard.hook(on_key_event)
+    # 상태 출력 스레드 시작
+    thread = threading.Thread(target=print_stat)
+    thread.daemon = True
+    thread.start()
+main()
 # 메인 스레드는 대기
 keyboard.wait('esc')  # 'esc' 키를 누르면 프로그램 종료
