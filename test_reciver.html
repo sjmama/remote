@@ -55,6 +55,8 @@
 
                 peerConnection = new RTCPeerConnection(configuration);
 
+                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
                 peerConnection.onicecandidate = ({ candidate }) => {
                     if (candidate) {
                         ws.send(JSON.stringify({ type: 'candidate', candidate }));
