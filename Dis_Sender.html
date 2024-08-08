@@ -39,6 +39,10 @@
                 localStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
                 localVideo.srcObject = localStream;
 
+                // Flask 서버에서 데이터 가져오기
+                
+
+                // WebRTC 연결 설정
                 const configuration = {
                     iceServers: [
                         {
@@ -53,6 +57,31 @@
                 };
 
                 peerConnection = new RTCPeerConnection(configuration);
+
+                dataChannel = peerConnection.createDataChannel('dataChannel');//데이터 채널 생성
+                dataChannel.onopen = () => {
+                    console.log('Data channel is open');
+                
+                    // 실시간 데이터를 전송하는 예시
+                    setInterval(async () => {
+                        try {
+                            // Flask 서버에서 데이터 가져오기
+                            const response = await fetch('http://127.0.0.1:5000/data'); 
+                            const data = await response.json();
+                            console.log('Received data from Flask server:', data);
+                
+                            // WebRTC 데이터 채널을 통해 데이터 전송
+                            dataChannel.send(JSON.stringify(data));
+                            //console.log('Sent data:', JSON.stringify(data));
+                        } catch (error) {
+                            console.error('Error fetching data from Flask server:', error);
+                        }
+                    }, 100);  // 100ms 간격으로 데이터 전송 (실시간 스트리밍 느낌)
+                };
+
+                dataChannel.onmessage = (event) => {
+                    console.log('Received data:', JSON.parse(event.data));
+                };
 
                 localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
 
@@ -70,7 +99,7 @@
                 await peerConnection.setLocalDescription(offer);
                 ws.send(JSON.stringify(offer));
             } catch (error) {
-                console.error('Error accessing display media.', error);
+                console.error('Error accessing display media or WebRTC.', error);
             }
         }
 

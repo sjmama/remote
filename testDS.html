@@ -5,12 +5,10 @@
 </head>
 <body>
     <h1>WebRTC Screen Capture Example</h1>
-    <a id="localVideo" autoplay playsinline></a>
-    <video id="remoteVideo" autoplay playsinline></video>
+    <video id="localVideo" autoplay playsinline></video>
 
     <script>
         const localVideo = document.getElementById('localVideo');
-        const remoteVideo = document.getElementById('remoteVideo');
 
         let localStream;
         let peerConnection;
@@ -63,17 +61,13 @@
                     }
                 };
 
-                peerConnection.ontrack = (event) => {
-                    remoteVideo.srcObject = event.streams[0];
-                };
-
                 // 데이터 채널 생성
                 peerConnection.ondatachannel = (event) => {
                     dataChannel = event.channel;
 
                     dataChannel.onmessage = (event) => {
                         const receivedData = JSON.parse(event.data);
-                        console.log('Received data:', receivedData);
+                        console.log('Received data:', JSON.stringify(receivedData));
                     };
 
                     dataChannel.onopen = () => {
