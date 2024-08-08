@@ -40,7 +40,7 @@
                 localVideo.srcObject = localStream;
 
                 // Flask 서버에서 데이터 가져오기
-                const response = await fetch('http://127.0.0.1:5000/data'); // Flask 서버 주소
+                const response = await fetch('http://127.0.0.1:5000/data'); 
                 const data = await response.json();
                 console.log('Received data from Flask server:', data);
 
@@ -59,6 +59,17 @@
                 };
 
                 peerConnection = new RTCPeerConnection(configuration);
+                
+                dataChannel = peerConnection.createDataChannel('dataChannel');
+
+                dataChannel.onopen = () => {
+                    console.log('Data channel is open');
+                    dataChannel.send(JSON.stringify(data)); // 데이터 전송
+                };
+
+                dataChannel.onmessage = (event) => {
+                    console.log('Received data:', JSON.parse(event.data));
+                };
 
                 localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
 

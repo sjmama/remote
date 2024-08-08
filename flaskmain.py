@@ -1,10 +1,10 @@
 from flask import Flask, jsonify
+from flask_cors import CORS
 import host
 app = Flask(__name__)
-
+CORS(app)
 @app.route('/data', methods=['GET'])
 def get_data():
-    print(host.tat())
     return jsonify(host.tat())
 
 if __name__ == '__main__':

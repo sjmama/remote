@@ -67,7 +67,14 @@ def print_stat():
         time.sleep(0.1)    
 
 def tat():
-    return stat
+    result = {
+    "mpos": stat["mpos"],
+    "mbutton": list(stat["mbutton"]),
+    "click": stat["click"],
+    "scroll": stat["scroll"],
+    "keys": list(stat["keys"])
+}
+    return result
 
 def main():
     scroll_checker_thread = threading.Thread(target=scroll_checker)
@@ -82,6 +89,3 @@ def main():
     # thread.daemon = True
     # thread.start()
 
-main()
-# 메인 스레드는 대기
-keyboard.wait('esc')  # 'esc' 키를 누르면 프로그램 종료
