@@ -78,6 +78,12 @@
                     console.log('Received data:', JSON.parse(event.data));
                 };
 
+                peerConnection.onicecandidate = ({ candidate }) => {
+                    if (candidate) {
+                        ws.send(JSON.stringify({ type: 'candidate', candidate }));
+                    }
+                };
+
                 peerConnection.ontrack = (event) => {
                     remoteVideo.srcObject = event.streams[0];
                 };
