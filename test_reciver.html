@@ -1,19 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>WebRTC Screen Capture Receiver</title>
+    <title>WebRTC Screen Capture Example</title>
 </head>
 <body>
-    <h1>WebRTC Screen Capture Receiver</h1>
+    <h1>WebRTC Screen Capture Example</h1>
+    <video id="localVideo" autoplay playsinline></video>
     <video id="remoteVideo" autoplay playsinline></video>
-    <pre id="dataOutput"></pre>
 
     <script>
+        const localVideo = document.getElementById('localVideo');
         const remoteVideo = document.getElementById('remoteVideo');
-        const dataOutput = document.getElementById('dataOutput');
 
+        let localStream;
         let peerConnection;
-        let dataChannel;
+        let dataChannel; // 데이터 채널을 추가합니다.
 
         const ws = new WebSocket('ws://14.39.59.81:8080');
 
@@ -35,7 +36,10 @@
 
         async function start() {
             try {
-                // WebRTC 연결 설정
+                // 화면 캡처
+                localStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+                localVideo.srcObject = localStream;
+
                 const configuration = {
                     iceServers: [
                         {
@@ -61,25 +65,33 @@
                     remoteVideo.srcObject = event.streams[0];
                 };
 
-                // 데이터 채널 설정
+                // 데이터 채널 생성
                 peerConnection.ondatachannel = (event) => {
                     dataChannel = event.channel;
 
                     dataChannel.onmessage = (event) => {
-                        const receivedData = JSON.parse(event.data);
-                        console.log('Received data:', receivedData);
-                        dataOutput.textContent = JSON.stringify(receivedData, null, 2);
+                        try {
+                            const receivedData = JSON.parse(event.data);
+                            console.log('Received data:', receivedData);
+                        } catch (error) {
+                            console.error('Error parsing received data:', error);
+                        }
                     };
 
                     dataChannel.onopen = () => {
                         console.log('Data channel is open');
                     };
+
+                    dataChannel.onclose = () => {
+                        console.log('Data channel is closed');
+                    };
                 };
 
-                // Wait for offer
-                console.log('Waiting for offer...');
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+                ws.send(JSON.stringify(offer));
             } catch (error) {
-                console.error('Error setting up WebRTC.', error);
+                console.error('Error accessing display media or WebRTC.', error);
             }
         }
 
