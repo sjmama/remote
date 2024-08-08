@@ -70,12 +70,8 @@
                     dataChannel = event.channel;
 
                     dataChannel.onmessage = (event) => {
-                        try {
-                            const receivedData = JSON.parse(event.data);
-                            console.log('Received data:', receivedData);
-                        } catch (error) {
-                            console.error('Error parsing received data:', error);
-                        }
+                        const receivedData = JSON.parse(event.data);
+                        console.log('Received data:', receivedData);
                     };
 
                     dataChannel.onopen = () => {

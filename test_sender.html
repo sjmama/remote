@@ -60,15 +60,18 @@
 
                 peerConnection = new RTCPeerConnection(configuration);
 
-                dataChannel = peerConnection.createDataChannel('dataChannel');
-
+                dataChannel = peerConnection.createDataChannel('dataChannel');//데이터 채널 생성
                 dataChannel.onopen = () => {
                     console.log('Data channel is open');
+                
+                    // 실시간 데이터를 전송하는 예시
+                    setInterval(() => {
+                        dataChannel.send(JSON.stringify(data));
+                    }, 100);  // 100ms 간격으로 데이터 전송 (실시간 스트리밍 느낌)
                 };
 
                 dataChannel.onmessage = (event) => {
                     console.log('Received data:', JSON.parse(event.data));
-                    dataChannel.send(JSON.stringify(data)); // 데이터 전송
                 };
 
                 localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
