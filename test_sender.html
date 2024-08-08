@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>WebRTC Screen Capture with Data Channel</title>
+    <title>WebRTC Screen Capture Example</title>
 </head>
 <body>
-    <h1>WebRTC Screen Capture with Data Channel</h1>
+    <h1>WebRTC Screen Capture Example</h1>
     <video id="localVideo" autoplay playsinline></video>
-    <a id="remoteVideo" autoplay playsinline></a>
+    <video id="remoteVideo" autoplay playsinline></video>
 
     <script>
         const localVideo = document.getElementById('localVideo');
@@ -14,9 +14,7 @@
 
         let localStream;
         let peerConnection;
-        let dataChannel;
 
-        // WebSocket 연결
         const ws = new WebSocket('ws://14.39.59.81:8080');
 
         ws.onmessage = async (event) => {
@@ -35,39 +33,32 @@
             }
         };
 
-        async function fetchJsonData() {
-            try {
-                const response = await fetch('http://localhost:5000/data');
-                return await response.json();
-            } catch (error) {
-                console.error('Error fetching JSON data:', error);
-                return null;
-            }
-        }
-
         async function start() {
             try {
                 // 화면 캡처
                 localStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
                 localVideo.srcObject = localStream;
 
+                // Flask 서버에서 데이터 가져오기
+                const response = await fetch('http://127.0.0.1:5000/data'); // Flask 서버 주소
+                const data = await response.json();
+                console.log('Received data from Flask server:', data);
+
+                // WebRTC 연결 설정
                 const configuration = {
                     iceServers: [
-                        { urls: 'stun:stun.l.google.com:19302' },
-                        { urls: 'turn:14.39.59.81', username: 'sjmama', credential: '3141' }
+                        {
+                            urls: 'stun:stun.l.google.com:19302'
+                        },
+                        {
+                            urls: 'turn:14.39.59.81',
+                            username: 'sjmama',
+                            credential: '3141'
+                        }
                     ]
                 };
 
                 peerConnection = new RTCPeerConnection(configuration);
-
-                // 데이터 채널 설정
-                dataChannel = peerConnection.createDataChannel('jsonDataChannel');
-                dataChannel.onopen = () => {
-                    console.log('Data channel is open');
-                };
-                dataChannel.onmessage = (event) => {
-                    console.log('Received message from data channel:', event.data);
-                };
 
                 localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
 
@@ -84,14 +75,8 @@
                 const offer = await peerConnection.createOffer();
                 await peerConnection.setLocalDescription(offer);
                 ws.send(JSON.stringify(offer));
-
-                // JSON 데이터 전송
-                const jsonData = await fetchJsonData();
-                if (jsonData && dataChannel.readyState === 'open') {
-                    dataChannel.send(JSON.stringify(jsonData));
-                }
             } catch (error) {
-                console.error('Error accessing display media or WebRTC setup.', error);
+                console.error('Error accessing display media or WebRTC.', error);
             }
         }
 

@@ -18,7 +18,6 @@ def on_move(event):
     stat["mpos"] = (event.x, event.y)
 
 def on_click(event):
-    print(event)
     if event.event_type == 'down' or event.event_type == 'double':
         stat["mbutton"].add(event.button)
         stat['click']=True

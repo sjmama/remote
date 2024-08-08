@@ -4,6 +4,7 @@ app = Flask(__name__)
 
 @app.route('/data', methods=['GET'])
 def get_data():
+    print(host.tat())
     return jsonify(host.tat())
 
 if __name__ == '__main__':
